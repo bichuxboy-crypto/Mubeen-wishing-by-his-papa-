@@ -1,0 +1,3295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>MUBEEN // 29</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    -webkit-tap-highlight-color:transparent;
+}
+
+:root{
+    --red:#ff1744;
+    --red2:#b40020;
+    --green:#00ff66;
+    --dark:#050505;
+    --gray:#111;
+    --white:#f5f5f5;
+    --muted:#858585;
+}
+
+html,body{
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:#000;
+    color:white;
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+button{
+    font:inherit;
+}
+
+#app{
+    width:100%;
+    height:100%;
+    position:relative;
+    overflow:hidden;
+}
+
+.page{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    display:none;
+    overflow:hidden;
+    background:#050505;
+}
+
+.page.active{
+    display:flex;
+    animation:pageIn .7s cubic-bezier(.16,1,.3,1) both;
+}
+
+@keyframes pageIn{
+    from{
+        opacity:0;
+        transform:scale(1.035) translateY(10px);
+        filter:brightness(.4) blur(3px);
+    }
+    to{
+        opacity:1;
+        transform:scale(1) translateY(0);
+        filter:brightness(1) blur(0);
+    }
+}
+
+.scanlines{
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    z-index:20;
+    background:repeating-linear-gradient(
+        to bottom,
+        rgba(255,255,255,.025) 0px,
+        rgba(255,255,255,.025) 1px,
+        transparent 1px,
+        transparent 4px
+    );
+    mix-blend-mode:screen;
+}
+
+.noise{
+    position:absolute;
+    inset:-50%;
+    pointer-events:none;
+    z-index:19;
+    opacity:.07;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.8'/%3E%3C/svg%3E");
+    animation:noiseMove .18s steps(2) infinite;
+}
+
+@keyframes noiseMove{
+    0%{transform:translate(0,0)}
+    25%{transform:translate(3%,1%)}
+    50%{transform:translate(-2%,3%)}
+    75%{transform:translate(2%,-2%)}
+    100%{transform:translate(-3%,1%)}
+}
+
+.center{
+    position:relative;
+    z-index:5;
+    width:min(900px,92%);
+    margin:auto;
+    text-align:center;
+}
+
+.red{
+    color:var(--red);
+}
+
+.green{
+    color:var(--green);
+}
+
+.mono{
+    font-family:"Courier New",monospace;
+}
+
+.glitch{
+    position:relative;
+    animation:glitch .18s infinite alternate;
+}
+
+@keyframes glitch{
+    0%{transform:translate(0)}
+    50%{transform:translate(-1px,1px)}
+    100%{transform:translate(1px,-1px)}
+}
+
+.main-title{
+    font-size:clamp(45px,11vw,105px);
+    font-weight:1000;
+    letter-spacing:-5px;
+    line-height:.85;
+}
+
+.sub{
+    margin-top:20px;
+    color:#aaa;
+    font-family:"Courier New",monospace;
+    font-size:clamp(12px,2vw,16px);
+}
+
+.action{
+    margin-top:35px;
+    border:1px solid rgba(255,23,68,.7);
+    background:rgba(255,23,68,.08);
+    color:white;
+    padding:16px 28px;
+    border-radius:4px;
+    cursor:pointer;
+    font-weight:800;
+    letter-spacing:2px;
+    transition:.25s;
+    position:relative;
+    overflow:hidden;
+    isolation:isolate;
+}
+
+.action:before{
+    content:"";
+    position:absolute;
+    top:0;
+    left:-120%;
+    width:70%;
+    height:100%;
+    background:linear-gradient(
+        90deg,
+        transparent,
+        rgba(255,255,255,.18),
+        transparent
+    );
+    transform:skewX(-20deg);
+    transition:.6s;
+    z-index:-1;
+}
+
+.action:hover:before,
+.action:active:before{
+    left:140%;
+}
+
+.action:hover,
+.action:active{
+    background:var(--red);
+    box-shadow:0 0 35px rgba(255,23,68,.55);
+    transform:translateY(-2px);
+}
+
+.small-terminal{
+    width:min(650px,92%);
+    margin:0 auto 25px;
+    padding:14px 18px;
+    border:1px solid #262626;
+    background:#030303;
+    box-shadow:0 0 35px rgba(255,0,50,.08);
+    text-align:left;
+    font:13px/1.8 "Courier New",monospace;
+    color:#777;
+}
+
+.cursor{
+    display:inline-block;
+    width:8px;
+    height:15px;
+    background:var(--red);
+    vertical-align:middle;
+    animation:blink .7s infinite;
+}
+
+@keyframes blink{
+    50%{opacity:0}
+}
+
+#page-intro{
+    background:
+        radial-gradient(circle at 50% 45%,rgba(255,0,40,.12),transparent 35%),
+        radial-gradient(circle at 20% 80%,rgba(255,0,40,.08),transparent 25%),
+        #020202;
+}
+
+.intro-grid{
+    position:absolute;
+    inset:0;
+    opacity:.18;
+    background-image:
+        linear-gradient(#ff174411 1px,transparent 1px),
+        linear-gradient(90deg,#ff174411 1px,transparent 1px);
+    background-size:45px 45px;
+    animation:gridMove 5s linear infinite;
+}
+
+@keyframes gridMove{
+    to{background-position:45px 45px}
+}
+
+.intro-terminal{
+    position:absolute;
+    left:5%;
+    right:5%;
+    top:7%;
+    height:25%;
+    overflow:hidden;
+    color:#651522;
+    font:11px/1.5 "Courier New",monospace;
+    text-align:left;
+    opacity:.8;
+}
+
+.intro-terminal span{
+    display:block;
+    animation:terminalFlash 2.5s infinite;
+}
+
+@keyframes terminalFlash{
+    0%,100%{opacity:.15}
+    50%{opacity:.75}
+}
+
+.access-box{
+    border:1px solid #321018;
+    background:rgba(0,0,0,.75);
+    padding:30px;
+    box-shadow:
+        0 0 50px rgba(255,0,40,.1),
+        inset 0 0 30px rgba(255,0,40,.025);
+    position:relative;
+    overflow:hidden;
+}
+
+.access-box:before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:linear-gradient(
+        120deg,
+        rgba(255,23,68,.04),
+        transparent 40%,
+        rgba(255,23,68,.02)
+    );
+    pointer-events:none;
+}
+
+.access-label{
+    color:#6d1c2b;
+    font:12px "Courier New",monospace;
+    letter-spacing:4px;
+    margin-bottom:20px;
+}
+
+.access-line{
+    width:100%;
+    height:1px;
+    background:linear-gradient(90deg,transparent,#ff1744,transparent);
+    margin:20px 0;
+    animation:linePulse 1.2s infinite;
+}
+
+@keyframes linePulse{
+    50%{opacity:.2}
+}
+
+#page-boot{
+    background:#010101;
+    align-items:center;
+    justify-content:center;
+}
+
+.boot-terminal{
+    width:min(850px,94%);
+    height:min(650px,82vh);
+    border:1px solid #252525;
+    background:#020202;
+    box-shadow:0 0 70px rgba(255,0,40,.1);
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    text-align:left;
+}
+
+.term-bar{
+    height:38px;
+    background:#111;
+    border-bottom:1px solid #252525;
+    display:flex;
+    align-items:center;
+    padding:0 14px;
+    gap:7px;
+    flex-shrink:0;
+}
+
+.term-dot{
+    width:9px;
+    height:9px;
+    border-radius:50%;
+    background:#555;
+}
+
+.term-title{
+    margin-left:8px;
+    color:#666;
+    font:11px "Courier New",monospace;
+}
+
+.term-body{
+    padding:20px;
+    overflow:hidden;
+    font:clamp(11px,2vw,14px)/1.8 "Courier New",monospace;
+    color:#bdbdbd;
+}
+
+.term-red{
+    color:#ff1744;
+}
+
+.term-green{
+    color:#00ff66;
+}
+
+.progress{
+    width:100%;
+    height:8px;
+    background:#111;
+    margin-top:18px;
+    border:1px solid #272727;
+}
+
+.progress i{
+    display:block;
+    width:0;
+    height:100%;
+    background:var(--red);
+    box-shadow:0 0 15px rgba(255,23,68,.7);
+    transition:width .2s;
+}
+
+.boot-status{
+    margin-top:16px;
+    color:#777;
+}
+
+.boot-btn{
+    display:none;
+    margin-top:22px;
+}
+
+.section-wrap{
+    width:min(1050px,92%);
+    max-height:92vh;
+    margin:auto;
+    text-align:center;
+    position:relative;
+    z-index:5;
+    overflow-y:auto;
+    overflow-x:hidden;
+    scrollbar-width:none;
+    padding:20px 0 35px;
+}
+
+.section-wrap::-webkit-scrollbar{
+    display:none;
+}
+
+.section-title{
+    font-size:clamp(30px,6vw,65px);
+    font-weight:1000;
+    letter-spacing:-2px;
+}
+
+.section-desc{
+    color:#888;
+    margin-top:12px;
+    font-family:"Courier New",monospace;
+    font-size:13px;
+}
+
+.profile-grid{
+    margin-top:35px;
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:15px;
+}
+
+.profile-card{
+    padding:28px 18px;
+    background:linear-gradient(145deg,#151515,#080808);
+    border:1px solid #282828;
+    transition:.3s;
+    position:relative;
+    overflow:hidden;
+}
+
+.profile-card:after{
+    content:"";
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    background:linear-gradient(
+        135deg,
+        rgba(255,255,255,.05),
+        transparent 35%
+    );
+    opacity:0;
+    transition:.3s;
+}
+
+.profile-card:hover{
+    border-color:#ff1744;
+    transform:translateY(-5px);
+}
+
+.profile-card:hover:after{
+    opacity:1;
+}
+
+.profile-icon{
+    font-size:34px;
+    margin-bottom:15px;
+}
+
+.profile-card h3{
+    margin-bottom:8px;
+}
+
+.profile-card p{
+    color:#777;
+    font-size:13px;
+    line-height:1.5;
+}
+
+#page-profile{
+    background:
+        radial-gradient(circle at 50% 50%,rgba(255,23,68,.08),transparent 35%),
+        #050505;
+}
+
+.photo-screen{
+    background:#000;
+}
+
+.photo-frame{
+    width:min(550px,88vw);
+    aspect-ratio:4/5;
+    border:1px solid #333;
+    padding:8px;
+    background:#090909;
+    box-shadow:0 0 80px rgba(255,0,40,.15);
+    margin:20px auto;
+    position:relative;
+    overflow:hidden;
+    transition:.4s ease;
+}
+
+.photo-frame:hover{
+    border-color:#ff1744;
+    box-shadow:
+        0 0 80px rgba(255,0,40,.2),
+        inset 0 0 30px rgba(255,0,40,.08);
+}
+
+.photo-frame img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+    filter:contrast(1.05) saturate(.85);
+    transition:.7s ease;
+}
+
+.photo-frame:hover img{
+    transform:scale(1.025);
+}
+
+.photo-frame:after{
+    content:"SIGNAL LOCKED";
+    position:absolute;
+    bottom:12px;
+    left:15px;
+    color:#ff1744;
+    font:10px "Courier New",monospace;
+    letter-spacing:3px;
+}
+
+#page-photo{
+    background:#020202;
+}
+
+#page-memory{
+    background:
+        radial-gradient(circle at 30% 30%,rgba(255,0,30,.09),transparent 25%),
+        #030303;
+}
+
+.memory-detected{
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    pointer-events:none;
+}
+
+.memory-signal{
+    width:90%;
+    max-width:850px;
+    height:55%;
+    border:1px solid #3b1119;
+    background:rgba(0,0,0,.75);
+    padding:25px;
+    text-align:left;
+    font:13px/1.8 "Courier New",monospace;
+    box-shadow:0 0 70px rgba(255,0,40,.08);
+    overflow:hidden;
+    animation:memoryPulse 3s ease-in-out infinite;
+    position:relative;
+}
+
+.memory-terminal-content{
+    position:relative;
+    z-index:4;
+    transition:.7s ease;
+}
+
+.memory-terminal-content.fade{
+    opacity:0;
+    transform:translateY(-10px);
+}
+
+@keyframes memoryPulse{
+    50%{
+        box-shadow:
+        0 0 90px rgba(255,0,40,.14),
+        inset 0 0 35px rgba(255,0,40,.04);
+    }
+}
+
+.signal-warning{
+    color:#ff1744;
+    font-size:clamp(22px,5vw,50px);
+    font-weight:900;
+    margin-bottom:15px;
+    animation:signalBreak .9s infinite;
+}
+
+@keyframes signalBreak{
+    0%,85%,100%{opacity:1;transform:translate(0)}
+    88%{opacity:.2;transform:translate(10px)}
+    92%{opacity:.8;transform:translate(-12px)}
+}
+
+.signal-image{
+    position:absolute;
+    width:70%;
+    height:50%;
+    left:15%;
+    top:25%;
+    overflow:hidden;
+    border:1px solid #34131a;
+    opacity:0;
+    display:none;
+    z-index:8;
+}
+
+.signal-image img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    filter:grayscale(1) contrast(1.5);
+}
+
+.signal-image.reveal{
+    display:block;
+    animation:memoryImageReveal .9s cubic-bezier(.16,1,.3,1) forwards;
+}
+
+@keyframes memoryImageReveal{
+    0%{
+        opacity:0;
+        transform:scale(.94);
+        filter:brightness(.2);
+    }
+    45%{
+        opacity:.7;
+        transform:scale(1.02);
+    }
+    70%{
+        opacity:.8;
+        transform:translateX(-3px);
+    }
+    100%{
+        opacity:1;
+        transform:scale(1);
+        filter:brightness(1);
+    }
+}
+
+.signal-image.reveal img{
+    animation:imageRecover .8s ease forwards;
+}
+
+@keyframes imageRecover{
+    0%{
+        transform:translateX(20px);
+        filter:grayscale(1) contrast(2.5);
+    }
+    25%{
+        transform:translateX(-14px);
+        filter:grayscale(1) contrast(2);
+    }
+    50%{
+        transform:translateX(7px);
+        filter:grayscale(.7) contrast(1.5);
+    }
+    100%{
+        transform:translateX(0);
+        filter:grayscale(.25) contrast(1.08);
+    }
+}
+
+.memory-buttons{
+    position:absolute;
+    bottom:30px;
+    left:0;
+    right:0;
+    text-align:center;
+    z-index:7;
+    opacity:0;
+    transform:translateY(15px);
+    pointer-events:none;
+    transition:.6s ease;
+}
+
+.memory-buttons.ready{
+    opacity:1;
+    transform:translateY(0);
+    pointer-events:auto;
+}
+
+.memory-movie{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:16px;
+    margin:30px 0;
+}
+
+.movie-card{
+    position:relative;
+    height:330px;
+    overflow:hidden;
+    border:1px solid #282828;
+    background:#090909;
+    cursor:pointer;
+    transform:rotate(var(--r));
+    transition:.4s;
+}
+
+.movie-card:hover{
+    transform:rotate(0) scale(1.03);
+    border-color:#ff1744;
+    box-shadow:0 0 35px rgba(255,23,68,.2);
+}
+
+.movie-card img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    filter:grayscale(.25) contrast(1.08);
+    transition:.5s;
+}
+
+.movie-card:hover img{
+    transform:scale(1.08);
+}
+
+.movie-overlay{
+    position:absolute;
+    inset:0;
+    background:linear-gradient(transparent 40%,rgba(0,0,0,.9));
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-end;
+    padding:20px;
+    text-align:left;
+}
+
+.movie-overlay small{
+    color:#ff1744;
+    font-family:"Courier New",monospace;
+}
+
+.movie-overlay h3{
+    margin-top:5px;
+}
+
+.quiz-list{
+    width:min(700px,100%);
+    margin:30px auto;
+    display:grid;
+    gap:12px;
+}
+
+.quiz-item{
+    border:1px solid #292929;
+    background:#090909;
+    padding:20px;
+    cursor:pointer;
+    text-align:left;
+    font-family:"Courier New",monospace;
+    position:relative;
+    transition:.3s;
+}
+
+.quiz-item:hover{
+    border-color:#555;
+}
+
+.quiz-item.approved{
+    border-color:#00ff66;
+    background:rgba(0,255,102,.04);
+    color:#00ff66;
+}
+
+.quiz-item.approved:after{
+    content:"ACCESS APPROVED";
+    float:right;
+    font-size:10px;
+}
+
+.quiz-next{
+    opacity:.3;
+    pointer-events:none;
+}
+
+.quiz-next.ready{
+    opacity:1;
+    pointer-events:auto;
+}
+
+#page-quiz{
+    background:
+        radial-gradient(circle at 50% 50%,rgba(0,255,102,.04),transparent 35%),
+        #020202;
+}
+
+#page-room{
+    background:
+        radial-gradient(circle at center,rgba(255,0,30,.1),transparent 45%),
+        #040404;
+}
+
+.room-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:15px;
+    width:min(700px,100%);
+    margin:30px auto;
+}
+
+.room-item{
+    min-height:150px;
+    border:1px solid #292929;
+    background:linear-gradient(145deg,#151515,#070707);
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    cursor:pointer;
+    transition:.35s;
+    position:relative;
+    overflow:hidden;
+}
+
+.room-item:after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:linear-gradient(
+        135deg,
+        rgba(255,255,255,.05),
+        transparent 35%
+    );
+    opacity:0;
+    transition:.3s;
+}
+
+.room-item:hover{
+    transform:translateY(-5px);
+    border-color:#ff1744;
+    box-shadow:0 0 30px rgba(255,23,68,.12);
+}
+
+.room-item:hover:after{
+    opacity:1;
+}
+
+.room-item .ri{
+    font-size:35px;
+    margin-bottom:12px;
+}
+
+.room-item span{
+    color:#888;
+    font:12px "Courier New",monospace;
+}
+
+#page-game{
+    background:#020202;
+}
+
+.game-top{
+    position:absolute;
+    top:20px;
+    left:20px;
+    right:20px;
+    display:flex;
+    justify-content:space-between;
+    z-index:8;
+    font:bold 14px "Courier New",monospace;
+}
+
+.game-zone{
+    position:absolute;
+    inset:0;
+}
+
+.target{
+    position:absolute;
+    width:65px;
+    height:65px;
+    border:2px solid var(--red);
+    border-radius:50%;
+    box-shadow:0 0 25px rgba(255,0,50,.5);
+    display:none;
+    cursor:pointer;
+    animation:targetPulse .65s infinite alternate;
+}
+
+@keyframes targetPulse{
+    to{
+        transform:scale(1.12);
+        box-shadow:0 0 45px rgba(255,0,50,.8);
+    }
+}
+
+.target:after{
+    content:"";
+    position:absolute;
+    inset:12px;
+    border:1px solid #fff;
+    border-radius:50%;
+}
+
+#page-hack{
+    background:#000;
+    overflow:hidden;
+}
+
+.matrix{
+    position:absolute;
+    inset:0;
+    overflow:hidden;
+    opacity:.85;
+}
+
+.matrix-column{
+    position:absolute;
+    top:-300px;
+    color:#00ff66;
+    font:16px/1.2 "Courier New",monospace;
+    writing-mode:vertical-rl;
+    text-shadow:0 0 8px #00ff66;
+    animation:matrixFall linear infinite;
+    white-space:pre;
+}
+
+@keyframes matrixFall{
+    from{transform:translateY(-20vh)}
+    to{transform:translateY(125vh)}
+}
+
+.hack-center{
+    position:absolute;
+    z-index:5;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    pointer-events:none;
+}
+
+.hack-terminal{
+    width:min(850px,92%);
+    max-height:78vh;
+    background:rgba(0,0,0,.88);
+    border:1px solid #174c29;
+    box-shadow:0 0 80px rgba(0,255,102,.12);
+    padding:20px;
+    font:clamp(10px,1.8vw,14px)/1.8 "Courier New",monospace;
+    overflow:hidden;
+}
+
+.hack-title{
+    color:#00ff66;
+    font-size:clamp(17px,4vw,32px);
+    margin-bottom:15px;
+    text-shadow:0 0 15px #00ff66;
+}
+
+.hack-line{
+    color:#74ff9d;
+    opacity:.9;
+}
+
+.hack-line.redline{
+    color:#ff1744;
+}
+
+.hack-progress{
+    height:8px;
+    background:#06130a;
+    margin-top:15px;
+    border:1px solid #174c29;
+}
+
+.hack-progress i{
+    display:block;
+    height:100%;
+    width:0;
+    background:#00ff66;
+    box-shadow:0 0 15px #00ff66;
+}
+
+.compromised{
+    color:#ff1744;
+    font-size:clamp(24px,6vw,60px);
+    font-weight:1000;
+    text-shadow:0 0 25px rgba(255,0,40,.8);
+    display:none;
+    animation:danger .4s infinite alternate;
+}
+
+@keyframes danger{
+    to{transform:translateX(3px);opacity:.7}
+}
+
+.prank-command{
+    position:absolute;
+    z-index:10;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%) scale(.5);
+    width:min(700px,90%);
+    padding:30px;
+    background:#020202;
+    border:2px solid #ff1744;
+    box-shadow:0 0 80px rgba(255,0,40,.6);
+    display:none;
+    text-align:center;
+    font-family:"Courier New",monospace;
+}
+
+.prank-command.show{
+    display:block;
+    animation:popPrank .5s cubic-bezier(.17,.67,.25,1.2) forwards;
+}
+
+@keyframes popPrank{
+    to{transform:translate(-50%,-50%) scale(1)}
+}
+
+.prank-command .big{
+    color:#ff1744;
+    font-size:clamp(30px,8vw,70px);
+    font-weight:1000;
+    margin:15px 0;
+}
+
+.do-not{
+    display:inline-block;
+    margin-top:20px;
+    border:2px solid #ff1744;
+    background:#45000c;
+    color:#fff;
+    width:min(300px,75vw);
+    height:min(300px,75vw);
+    max-width:300px;
+    max-height:300px;
+    border-radius:50%;
+    cursor:pointer;
+    font-size:clamp(20px,5vw,32px);
+    font-weight:1000;
+    box-shadow:
+        0 0 30px rgba(255,23,68,.3),
+        inset 0 0 40px rgba(255,23,68,.25);
+    animation:buttonPulse 1.2s infinite;
+}
+
+@keyframes buttonPulse{
+    50%{
+        box-shadow:
+        0 0 70px rgba(255,23,68,.65),
+        inset 0 0 60px rgba(255,23,68,.4);
+    }
+}
+
+.shake{
+    animation:shake .4s;
+}
+
+@keyframes shake{
+    0%,100%{transform:translate(0)}
+    20%{transform:translate(-12px,5px)}
+    40%{transform:translate(10px,-5px)}
+    60%{transform:translate(-7px,-3px)}
+    80%{transform:translate(8px,4px)}
+}
+
+#page-gifts{
+    background:
+        radial-gradient(circle at 50% 50%,rgba(255,23,68,.1),transparent 40%),
+        #050505;
+}
+
+.gift-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:15px;
+    margin-top:35px;
+}
+
+.gift{
+    min-height:190px;
+    border:1px solid #292929;
+    background:linear-gradient(145deg,#151515,#070707);
+    padding:25px 15px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    cursor:pointer;
+    transition:.35s;
+    position:relative;
+    overflow:hidden;
+}
+
+.gift:after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:linear-gradient(
+        135deg,
+        rgba(255,255,255,.05),
+        transparent 35%
+    );
+    opacity:0;
+    transition:.3s;
+}
+
+.gift:hover{
+    border-color:#ff1744;
+    transform:translateY(-7px) rotate(-1deg);
+}
+
+.gift:hover:after{
+    opacity:1;
+}
+
+.gift-icon{
+    font-size:40px;
+    margin-bottom:15px;
+}
+
+.gift p{
+    color:#777;
+    font:11px "Courier New",monospace;
+    margin-top:7px;
+}
+
+#page-cake{
+    background:
+        radial-gradient(circle at 50% 60%,rgba(255,23,68,.12),transparent 35%),
+        #040404;
+}
+
+.cake-area{
+    position:relative;
+    width:min(420px,90vw);
+    height:330px;
+    margin:20px auto;
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+}
+
+.cake{
+    position:relative;
+    width:280px;
+    height:145px;
+    background:linear-gradient(#e6e6e6,#aaa);
+    border-radius:12px 12px 25px 25px;
+    box-shadow:0 20px 60px rgba(255,0,30,.2);
+}
+
+.cake:before{
+    content:"";
+    position:absolute;
+    left:0;
+    right:0;
+    top:25px;
+    height:15px;
+    background:#ff1744;
+    box-shadow:0 55px 0 #eee;
+}
+
+.candle{
+    position:absolute;
+    width:20px;
+    height:70px;
+    background:#eee;
+    top:-70px;
+    cursor:pointer;
+    border-radius:4px 4px 0 0;
+}
+
+.candle:nth-child(1){left:55px}
+.candle:nth-child(2){left:130px}
+.candle:nth-child(3){right:55px}
+
+.flame{
+    position:absolute;
+    width:18px;
+    height:27px;
+    background:#ff1744;
+    border-radius:50% 50% 50% 0;
+    transform:rotate(-45deg);
+    top:-25px;
+    left:1px;
+    box-shadow:0 0 25px rgba(255,23,68,.8);
+    animation:flame .5s infinite alternate;
+}
+
+@keyframes flame{
+    to{transform:rotate(-45deg) scale(.75)}
+}
+
+.candle.off .flame{
+    display:none;
+}
+
+.cake-heading{
+    position:relative;
+    z-index:10;
+    margin-bottom:15px;
+}
+
+#page-music{
+    background:
+        radial-gradient(circle at center,rgba(255,23,68,.1),transparent 40%),
+        #050505;
+}
+
+.music-box{
+    width:min(600px,92%);
+    margin:30px auto;
+    padding:30px;
+    background:#0a0a0a;
+    border:1px solid #292929;
+    box-shadow:0 0 60px rgba(255,23,68,.08);
+    position:relative;
+    overflow:hidden;
+}
+
+.music-box:before{
+    content:"";
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    background:linear-gradient(
+        120deg,
+        rgba(255,23,68,.06),
+        transparent 35%,
+        rgba(255,23,68,.025)
+    );
+}
+
+.music-cover{
+    width:150px;
+    height:150px;
+    margin:0 auto 25px;
+    object-fit:cover;
+    border:1px solid #333;
+    transition:.5s;
+    box-shadow:0 0 35px rgba(255,23,68,.1);
+}
+
+.music-box:hover .music-cover{
+    transform:scale(1.025);
+    box-shadow:0 0 50px rgba(255,23,68,.2);
+}
+
+.music-controls{
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    margin-top:20px;
+}
+
+.music-controls button{
+    background:#151515;
+    border:1px solid #333;
+    color:#fff;
+    padding:12px 18px;
+    cursor:pointer;
+}
+
+.music-controls button:hover{
+    border-color:#ff1744;
+}
+
+.seek{
+    width:100%;
+    margin-top:20px;
+    accent-color:#ff1744;
+}
+
+.time-row{
+    display:flex;
+    justify-content:space-between;
+    color:#666;
+    font:11px "Courier New",monospace;
+}
+
+.future-list{
+    width:min(700px,100%);
+    margin:30px auto;
+    display:grid;
+    gap:12px;
+}
+
+.future{
+    padding:22px;
+    background:#090909;
+    border:1px solid #292929;
+    text-align:left;
+    cursor:pointer;
+    font-family:"Courier New",monospace;
+    transition:.3s;
+    position:relative;
+    overflow:hidden;
+}
+
+.future:after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:linear-gradient(
+        135deg,
+        rgba(255,255,255,.04),
+        transparent 35%
+    );
+    opacity:0;
+    transition:.3s;
+}
+
+.future:hover{
+    border-color:#ff1744;
+    transform:translateX(5px);
+}
+
+.future:hover:after{
+    opacity:1;
+}
+
+#page-final{
+    background:
+        radial-gradient(circle at center,rgba(255,23,68,.18),transparent 40%),
+        #030303;
+}
+
+.final-number{
+    font-size:clamp(100px,25vw,280px);
+    font-weight:1000;
+    line-height:.75;
+    color:#111;
+    text-shadow:
+        2px 2px 0 #ff1744,
+        -2px -2px 0 #333;
+}
+
+.final-name{
+    font-size:clamp(45px,12vw,120px);
+    font-weight:1000;
+    letter-spacing:-5px;
+    text-shadow:0 0 25px rgba(255,23,68,.12);
+}
+
+.confetti{
+    position:absolute;
+    width:7px;
+    height:14px;
+    background:#ff1744;
+    top:-20px;
+    animation:confettiFall 3s linear forwards;
+}
+
+@keyframes confettiFall{
+    to{
+        transform:translateY(110vh) rotate(720deg);
+        opacity:0;
+    }
+}
+
+.modal{
+    position:fixed;
+    inset:0;
+    z-index:100;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    background:rgba(0,0,0,.85);
+    backdrop-filter:blur(10px);
+    padding:20px;
+}
+
+.modal.show{
+    display:flex;
+}
+
+.modal-box{
+    width:min(600px,100%);
+    background:#050505;
+    border:1px solid #333;
+    box-shadow:0 0 80px rgba(255,23,68,.2);
+    padding:28px;
+    text-align:center;
+    animation:modalIn .35s cubic-bezier(.16,1,.3,1);
+}
+
+@keyframes modalIn{
+    from{
+        opacity:0;
+        transform:scale(.92) translateY(15px);
+    }
+    to{
+        opacity:1;
+        transform:scale(1) translateY(0);
+    }
+}
+
+.modal-title{
+    color:#ff1744;
+    font:12px "Courier New",monospace;
+    letter-spacing:3px;
+    margin-bottom:20px;
+}
+
+.modal-text{
+    color:#ddd;
+    line-height:1.8;
+    white-space:pre-line;
+}
+
+.modal-input{
+    width:100%;
+    margin-top:20px;
+    background:#000;
+    border:1px solid #333;
+    color:#fff;
+    padding:15px;
+    outline:none;
+    font-family:"Courier New",monospace;
+    text-align:center;
+}
+
+.modal-input:focus{
+    border-color:#ff1744;
+}
+
+.modal-actions{
+    display:flex;
+    gap:10px;
+    justify-content:center;
+    margin-top:20px;
+    flex-wrap:wrap;
+}
+
+.close-btn{
+    background:#111;
+    color:#aaa;
+    border:1px solid #333;
+    padding:12px 20px;
+    cursor:pointer;
+}
+
+.close-btn:hover{
+    color:#fff;
+    border-color:#777;
+}
+
+#pageFlash{
+    position:fixed;
+    inset:0;
+    z-index:9998;
+    background:#ff1744;
+    pointer-events:none;
+    opacity:0;
+}
+
+#pageFlash.flash{
+    animation:pageFlash .45s ease;
+}
+
+@keyframes pageFlash{
+    0%{opacity:0}
+    25%{opacity:.16}
+    100%{opacity:0}
+}
+
+#nextLock{
+    position:fixed;
+    left:50%;
+    bottom:22px;
+    transform:translateX(-50%) translateY(25px);
+    z-index:9999;
+    width:min(390px,90%);
+    padding:14px 18px;
+    border:1px solid rgba(255,23,68,.5);
+    background:rgba(3,3,3,.95);
+    backdrop-filter:blur(14px);
+    box-shadow:0 0 40px rgba(255,23,68,.18);
+    text-align:center;
+    font:11px "Courier New",monospace;
+    color:#777;
+    opacity:0;
+    pointer-events:none;
+    transition:.3s ease;
+}
+
+#nextLock.show{
+    opacity:1;
+    transform:translateX(-50%) translateY(0);
+}
+
+#nextLock strong{
+    color:#ff1744;
+    font-size:17px;
+}
+
+.lock-bar{
+    height:3px;
+    background:#171717;
+    margin-top:10px;
+    overflow:hidden;
+}
+
+.lock-bar i{
+    display:block;
+    width:0;
+    height:100%;
+    background:#ff1744;
+    box-shadow:0 0 12px #ff1744;
+    transition:width .1s linear;
+}
+
+@media(max-width:700px){
+    .profile-grid,
+    .memory-movie,
+    .gift-grid{
+        grid-template-columns:1fr;
+    }
+
+    .profile-grid{
+        max-height:55vh;
+        overflow:auto;
+    }
+
+    .movie-card{
+        height:220px;
+    }
+
+    .memory-movie{
+        max-height:58vh;
+        overflow:auto;
+    }
+
+    .gift-grid{
+        grid-template-columns:1fr 1fr;
+        max-height:60vh;
+        overflow:auto;
+    }
+
+    .gift{
+        min-height:145px;
+        padding:15px 8px;
+    }
+
+    .room-grid{
+        grid-template-columns:1fr 1fr;
+    }
+
+    .room-item{
+        min-height:130px;
+    }
+
+    .section-wrap{
+        max-height:90vh;
+    }
+
+    .section-desc{
+        max-width:90%;
+        margin-left:auto;
+        margin-right:auto;
+    }
+
+    .access-box{
+        padding:22px 15px;
+    }
+
+    .hack-terminal{
+        max-height:70vh;
+    }
+
+    #nextLock{
+        bottom:12px;
+    }
+
+    .action{
+        min-height:48px;
+    }
+
+    .memory-signal{
+        height:55%;
+        padding:20px;
+    }
+
+    .signal-image{
+        width:82%;
+        height:58%;
+        left:9%;
+        top:21%;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div id="pageFlash"></div>
+
+<div id="nextLock">
+    <div>SECURITY PROTOCOL // NEXT ACTION LOCKED</div>
+    <div style="margin-top:5px">AVAILABLE IN <strong id="lockSeconds">10</strong>s</div>
+    <div class="lock-bar"><i id="lockProgress"></i></div>
+</div>
+
+<div id="app">
+
+<section class="page active" id="page-intro">
+    <div class="intro-grid"></div>
+
+    <div class="intro-terminal mono">
+        <span>> initializing encrypted_session...</span>
+        <span>> bypassing birthday_firewall........ [OK]</span>
+        <span>> loading subject: MUBEEN</span>
+        <span>> searching date signature: 29/09</span>
+        <span>> signal detected..................... [FOUND]</span>
+        <span>> WARNING: unauthorized birthday access</span>
+        <span>> attempting fake terminal handshake...</span>
+        <span>> cracking celebration_protocol...</span>
+        <span>> ███████████████████████████████████</span>
+    </div>
+
+    <div class="center">
+        <div class="access-box">
+            <div class="access-label">CLASSIFIED // PRIVATE SESSION</div>
+            <div class="access-line"></div>
+            <div class="mono red">> ACCESS REQUESTED</div>
+            <div class="main-title glitch">29<span class="red">/</span>09</div>
+            <div class="sub">TARGET: MUBEEN // BIRTHDAY SESSION</div>
+            <div class="sub red">FAKE SECURITY SYSTEM — JUST FOR FUN</div>
+            <div class="access-line"></div>
+            <button class="action" id="startBtn">> START_SESSION <span class="cursor"></span></button>
+        </div>
+    </div>
+
+    <div class="scanlines"></div>
+    <div class="noise"></div>
+</section>
+
+<section class="page" id="page-boot">
+    <div class="boot-terminal">
+        <div class="term-bar">
+            <span class="term-dot"></span>
+            <span class="term-dot"></span>
+            <span class="term-dot"></span>
+            <span class="term-title">mubeen@birthday-terminal — secure shell</span>
+        </div>
+
+        <div class="term-body">
+            <div class="term-red">MUBEEN SYSTEM BOOT v29.09</div>
+            <br>
+            <div>> establishing encrypted connection...</div>
+            <div>> checking celebration modules...</div>
+            <div>> mounting memory drive...</div>
+            <div>> loading classified birthday file...</div>
+            <br>
+            <div class="term-green">ANALYSIS — WAIT A FEW SEC</div>
+            <div id="analysisLines"></div>
+            <div class="progress"><i id="bootProgress"></i></div>
+            <div class="boot-status" id="bootStatus">ANALYSIS STARTING...</div>
+            <button class="action boot-btn" id="bootNext">ENTER FILE_01</button>
+        </div>
+    </div>
+
+    <div class="scanlines"></div>
+</section>
+
+<section class="page" id="page-file">
+    <div class="section-wrap">
+        <div class="small-terminal">
+            <div class="term-red">root@mubeen:~$ open FILE_01</div>
+            <div>> encrypted birthday archive detected</div>
+            <div>> decrypting personal profile...</div>
+            <div class="term-green">ACCESS GRANTED</div>
+        </div>
+
+        <div class="section-title">FILE <span class="red">01</span></div>
+        <div class="section-desc">SUBJECT IDENTIFICATION // MUBEEN</div>
+
+        <div class="profile-grid">
+            <div class="profile-card">
+                <div class="profile-icon">◉</div>
+                <h3>SUBJECT</h3>
+                <p>Mubeen</p>
+            </div>
+
+            <div class="profile-card">
+                <div class="profile-icon">29</div>
+                <h3>DATE SIGNATURE</h3>
+                <p>29 September</p>
+            </div>
+
+            <div class="profile-card">
+                <div class="profile-icon">?</div>
+                <h3>STATUS</h3>
+                <p>Birthday mode detected</p>
+            </div>
+        </div>
+
+        <button class="action" onclick="nextAction('page-photo')">CONTINUE →</button>
+    </div>
+
+    <div class="scanlines"></div>
+</section>
+
+<section class="page photo-screen" id="page-photo">
+    <div class="section-wrap">
+        <div class="small-terminal">
+            <div class="term-red">> IMAGE SIGNAL DETECTED</div>
+            <div>> restoring visual memory...</div>
+            <div class="term-green">SIGNAL RESTORED</div>
+        </div>
+
+        <div class="section-title">MEMORY <span class="red">01</span></div>
+
+        <div class="photo-frame">
+            <img src="assets/mubeen-01.jpg" alt="Mubeen">
+        </div>
+
+        <button class="action" onclick="nextAction('page-memory')">RESTORE NEXT SIGNAL</button>
+    </div>
+
+    <div class="scanlines"></div>
+    <div class="noise"></div>
+</section>
+
+<section class="page" id="page-memory">
+
+    <div class="memory-detected">
+        <div class="memory-signal" id="memorySignal">
+
+            <div class="memory-terminal-content" id="memoryTerminalContent">
+
+                <div class="signal-warning">MEMORY DETECTED</div>
+
+                <div id="memoryLine1"></div>
+                <div id="memoryLine2"></div>
+                <div id="memoryLine3"></div>
+                <div id="memoryLine4"></div>
+                <div id="memoryLine5"></div>
+                <div id="memoryLine6"></div>
+                <div id="memoryLine7"></div>
+                <div id="memorySuccess" class="term-green" style="opacity:0">
+                    RECOVERY SUCCESSFUL
+                </div>
+
+            </div>
+
+            <div class="signal-image" id="recoveredImage">
+                <img src="assets/mubeen-02.jpg" alt="Recovered Memory">
+            </div>
+
+        </div>
+    </div>
+
+    <div class="memory-buttons" id="memoryButtons">
+        <button class="action" onclick="nextAction('page-movie')">
+            OPEN RECOVERED MEMORY
+        </button>
+    </div>
+
+    <div class="scanlines"></div>
+    <div class="noise"></div>
+</section>
+
+<section class="page" id="page-movie">
+    <div class="section-wrap">
+        <div class="small-terminal">
+            <div class="term-red">> MEMORY_MOVIE.exe</div>
+            <div>> frames recovered: 03</div>
+            <div>> cinematic archive unlocked</div>
+        </div>
+
+        <div class="section-title">MEMORY <span class="red">MOVIE</span></div>
+        <div class="section-desc">CLICK A FRAME TO OPEN THE RECOVERED SIGNAL</div>
+
+        <div class="memory-movie">
+
+            <div class="movie-card" style="--r:-2deg" onclick="openImage('assets/mubeen-03.jpg')">
+                <img src="assets/mubeen-03.jpg">
+                <div class="movie-overlay">
+                    <small>FRAME_01</small>
+                    <h3>THE GOOD DAYS</h3>
+                </div>
+            </div>
+
+            <div class="movie-card" style="--r:1deg" onclick="openImage('assets/mubeen-04.jpg')">
+                <img src="assets/mubeen-04.jpg">
+                <div class="movie-overlay">
+                    <small>FRAME_02</small>
+                    <h3>THE RANDOM MOMENTS</h3>
+                </div>
+            </div>
+
+            <div class="movie-card" style="--r:-1deg" onclick="openImage('assets/mubeen-05.jpg')">
+                <img src="assets/mubeen-05.jpg">
+                <div class="movie-overlay">
+                    <small>FRAME_03</small>
+                    <h3>THE MEMORY</h3>
+                </div>
+            </div>
+
+        </div>
+
+        <button class="action" onclick="nextAction('page-quiz')">ENTER SECURITY QUESTIONS</button>
+    </div>
+
+    <div class="scanlines"></div>
+</section>
+
+<section class="page" id="page-quiz">
+    <div class="section-wrap">
+
+        <div class="small-terminal">
+            <div class="term-green">SECURITY PROTOCOL ACTIVE</div>
+            <div>> subject verification required</div>
+            <div>> click the correct answers to unlock next stage</div>
+        </div>
+
+        <div class="section-title">SECURITY <span class="red">QUESTIONS</span></div>
+        <div class="section-desc">EVERY CLICK WILL BE SCANNED</div>
+
+        <div class="quiz-list">
+            <div class="quiz-item" onclick="verifyQuiz(this,'IDENTITY')">
+                > WHO IS THE TARGET OF THIS FILE?
+            </div>
+
+            <div class="quiz-item" onclick="verifyQuiz(this,'DATE')">
+                > WHICH DATE IS HIDDEN IN THE SYSTEM?
+            </div>
+
+            <div class="quiz-item" onclick="verifyQuiz(this,'BIRTHDAY')">
+                > WHY WAS THIS SYSTEM CREATED?
+            </div>
+        </div>
+
+        <button class="action quiz-next" id="quizNext" onclick="nextAction('page-room')">
+            ACCESS ROOM_29 →
+        </button>
+    </div>
+
+    <div class="scanlines"></div>
+</section>
+
+<section class="page" id="page-room">
+    <div class="section-wrap">
+
+        <div class="small-terminal">
+            <div class="term-red">ROOM_29 // PRIVATE CHAMBER</div>
+            <div>> four objects detected</div>
+            <div>> one object contains restricted access</div>
+        </div>
+
+        <div class="section-title">ROOM <span class="red">29</span></div>
+        <div class="section-desc">CHOOSE YOUR OBJECT</div>
+
+        <div class="room-grid">
+
+            <div class="room-item" onclick="showMessage('MEMORY','Some memories never really leave. They just hide until someone opens the right file.')">
+                <div class="ri">▣</div>
+                <strong>MEMORY</strong>
+                <span>open_archive</span>
+            </div>
+
+            <div class="room-item" onclick="showMessage('MESSAGE','Mubeen — another year, another level unlocked. Stay happy and keep making memories.')">
+                <div class="ri">▤</div>
+                <strong>MESSAGE</strong>
+                <span>read_message</span>
+            </div>
+
+            <div class="room-item" onclick="nextAction('page-game')">
+                <div class="ri">◈</div>
+                <strong>GIFT</strong>
+                <span>encrypted_package</span>
+            </div>
+
+            <div class="room-item" onclick="openPassword()">
+                <div class="ri red">?</div>
+                <strong class="red">UNKNOWN</strong>
+                <span>RESTRICTED ACCESS</span>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="scanlines"></div>
+</section>
+
+<section class="page" id="page-game">
+
+    <div class="game-top">
+        <span class="red">TARGET LOCK</span>
+        <span>TIME: <b id="gameTime">29</b></span>
+        <span>SCORE: <b id="gameScore">0</b></span>
+    </div>
+
+    <div class="game-zone" id="gameZone"></div>
+
+    <div class="center" id="gameStartBox">
+        <div class="section-title">GIFT <span class="red">LOCKED</span></div>
+        <div class="sub">CLICK THE RED SIGNALS BEFORE THE TIMER ENDS</div>
+        <button class="action" onclick="startGame()">START CHALLENGE</button>
+    </div>
+
+    <div class="scanlines"></div>
+</section>
+
+<section class="page" id="page-hack">
+
+    <div class="matrix" id="matrix"></div>
+
+    <div class="hack-center">
+        <div class="hack-terminal" id="hackTerminal">
+
+            <div class="hack-title">> UNAUTHORIZED SESSION DETECTED</div>
+
+            <div class="hack-line">> initializing remote analysis...</div>
+            <div class="hack-line">> connecting to encrypted node...</div>
+            <div class="hack-line">> handshake: <span class="term-green">SUCCESS</span></div>
+
+            <br>
+
+            <div class="hack-line">
+                > CONTACT DATABASE ........ <span id="scan1">WAITING</span>
+            </div>
+
+            <div class="hack-line">
+                > PHOTO DIRECTORY ......... <span id="scan2">WAITING</span>
+            </div>
+
+            <div class="hack-line">
+                > PRIVATE DATA ............ <span id="scan3">WAITING</span>
+            </div>
+
+            <div class="hack-line">
+                > DEVICE STATUS ........... <span id="scan4">WAITING</span>
+            </div>
+
+            <div class="hack-line redline">
+                > SECURITY LEVEL .......... CRITICAL
+            </div>
+
+            <div class="hack-progress">
+                <i id="hackProgress"></i>
+            </div>
+
+            <br>
+
+            <div class="hack-line" id="hackStatus">
+                ANALYSIS IN PROGRESS...
+            </div>
+
+            <div class="compromised" id="compromised">
+                DEVICE COMPROMISED
+            </div>
+
+        </div>
+    </div>
+
+    <div class="prank-command" id="prankCommand">
+
+        <div class="green">> SYSTEM MESSAGE</div>
+
+        <div class="big">prank.exe</div>
+
+        <div class="mono">> target = MUBEEN</div>
+        <div class="mono">> status = SUCCESS</div>
+
+        <br>
+
+        <div class="red">> uhh... again got pranked 😂</div>
+
+        <button class="action" onclick="nextAction('page-do-not')">
+            CONTINUE →
+        </button>
+
+    </div>
+
+    <div class="scanlines"></div>
+</section>
+
+<section class="page" id="page-do-not">
+
+    <div class="center">
+
+        <div class="small-terminal">
+            <div class="term-red">WARNING // RESTRICTED BUTTON</div>
+            <div>> system strongly recommends NOT pressing it</div>
+            <div>> curiosity detected...</div>
+        </div>
+
+        <div class="section-title">
+            DO <span class="red">NOT</span> PRESS
+        </div>
+
+        <div class="sub">
+            SERIOUSLY MUBEEN...
+        </div>
+
+        <button class="do-not" id="prankButton">
+            DO<br>NOT<br>PRESS
+        </button>
+
+        <div id="againPrank"
+             class="sub red"
+             style="display:none;margin-top:20px;font-size:20px;font-weight:bold;">
+            YOU GOT PRANKED AGAIN 😂
+        </div>
+
+        <br>
+
+        <button class="action"
+                id="afterPrank"
+                style="display:none"
+                onclick="nextAction('page-gifts')">
+            OPEN ACTUAL GIFTS →
+        </button>
+
+    </div>
+
+    <div class="scanlines"></div>
+</section>
+
+<section class="page" id="page-gifts">
+
+    <div class="section-wrap">
+
+        <div class="small-terminal">
+            <div class="term-green">PRANK COMPLETE</div>
+            <div>> actual birthday package unlocked</div>
+        </div>
+
+        <div class="section-title">
+            ACTUAL <span class="red">GIFTS</span>
+        </div>
+
+        <div class="section-desc">
+            MAYBE THESE ARE SAFE... MAYBE.
+        </div>
+
+        <div class="gift-grid">
+
+            <div class="gift" onclick="showMessage('MEMORY GIFT','You are officially 29 now. That means more memories, more stories and probably more random nonsense 😂')">
+                <div class="gift-icon">▣</div>
+                <strong>MEMORY</strong>
+                <p>open_gift_01</p>
+            </div>
+
+            <div class="gift" onclick="showMessage('MESSAGE GIFT','Happy Birthday Mubeen ❤️ May this year bring you peace, happiness, success and a lot of moments worth remembering.')">
+                <div class="gift-icon">✉</div>
+                <strong>MESSAGE</strong>
+                <p>open_gift_02</p>
+            </div>
+
+            <div class="gift" onclick="openPassword()">
+                <div class="gift-icon red">?</div>
+                <strong class="red">UNKNOWN</strong>
+                <p>password_required</p>
+            </div>
+
+        </div>
+
+        <button class="action" onclick="nextAction('page-cake')">
+            NEXT →
+        </button>
+
+    </div>
+
+    <div class="scanlines"></div>
+</section>
+
+<section class="page" id="page-cake">
+
+    <div class="section-wrap">
+
+        <div class="small-terminal">
+            <div class="term-red">BIRTHDAY_PROTOCOL.exe</div>
+            <div>> cake module loaded</div>
+            <div>> three candles detected</div>
+        </div>
+
+        <div class="cake-heading">
+
+            <div class="section-title">
+                MAKE A <span class="red">WISH</span>
+            </div>
+
+            <div class="section-desc">
+                TAP ALL THREE CANDLES
+            </div>
+
+        </div>
+
+        <div class="cake-area">
+
+            <div class="cake">
+
+                <div class="candle" onclick="blowCandle(this)">
+                    <div class="flame"></div>
+                </div>
+
+                <div class="candle" onclick="blowCandle(this)">
+                    <div class="flame"></div>
+                </div>
+
+                <div class="candle" onclick="blowCandle(this)">
+                    <div class="flame"></div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div id="wishStatus" class="sub">
+            3 CANDLES ACTIVE
+        </div>
+
+        <button class="action" onclick="nextAction('page-music')">
+            CONTINUE →
+        </button>
+
+    </div>
+
+    <div class="scanlines"></div>
+</section>
+
+<section class="page" id="page-music">
+
+    <div class="section-wrap">
+
+        <div class="small-terminal">
+            <div class="term-green">AUDIO_MODULE READY</div>
+            <div>> birthday soundtrack loaded</div>
+        </div>
+
+        <div class="section-title">
+            MUSIC <span class="red">ROOM</span>
+        </div>
+
+        <div class="music-box">
+
+            <img
+                class="music-cover"
+                src="assets/music-cover.jpg"
+                alt="Music"
+            >
+
+            <h2>Mubeen — Birthday Session</h2>
+
+            <div class="sub">
+                birthday.mp3
+            </div>
+
+            <audio
+                id="audio"
+                src="assets/birthday.mp3">
+            </audio>
+
+            <input
+                class="seek"
+                id="seek"
+                type="range"
+                min="0"
+                max="100"
+                value="0"
+            >
+
+            <div class="time-row">
+                <span id="currentTime">0:00</span>
+                <span id="remainingTime">0:00</span>
+            </div>
+
+            <div class="music-controls">
+
+                <button
+                    onclick="toggleMusic()"
+                    id="playBtn">
+                    PLAY
+                </button>
+
+                <button
+                    onclick="muteMusic()"
+                    id="muteBtn">
+                    MUTE
+                </button>
+
+            </div>
+
+        </div>
+
+        <button class="action" onclick="nextAction('page-future')">
+            OPEN FUTURE FILES →
+        </button>
+
+    </div>
+
+    <div class="scanlines"></div>
+</section>
+
+<section class="page" id="page-future">
+
+    <div class="section-wrap">
+
+        <div class="small-terminal">
+            <div class="term-red">FUTURE_ARCHIVE</div>
+            <div>> three encrypted messages detected</div>
+            <div>> select one to decrypt</div>
+        </div>
+
+        <div class="section-title">
+            FUTURE <span class="red">FILES</span>
+        </div>
+
+        <div class="future-list">
+
+            <div
+                class="future"
+                onclick="showMessage('FILE_2027','Another year will pass. Hopefully the memories will get even better.')">
+                > FILE_2027.exe
+            </div>
+
+            <div
+                class="future"
+                onclick="showMessage('FILE_2030','If you ever look back at this page, remember how random this birthday website was 😂')">
+                > FILE_2030.exe
+            </div>
+
+            <div
+                class="future"
+                onclick="showMessage('FILE_UNKNOWN','Some messages are better left encrypted until the right moment.')">
+                > FILE_UNKNOWN.exe
+            </div>
+
+        </div>
+
+        <button class="action" onclick="nextAction('page-classified')">
+            OPEN FILE_000 →
+        </button>
+
+    </div>
+
+    <div class="scanlines"></div>
+</section>
+
+<section class="page" id="page-classified">
+
+    <div class="center">
+
+        <div class="small-terminal">
+            <div class="term-red">CLASSIFIED FILE 000</div>
+            <div>> final encryption layer detected</div>
+            <div>> decrypting...</div>
+        </div>
+
+        <div class="section-title">
+            FILE <span class="red">000</span>
+        </div>
+
+        <div class="photo-frame">
+            <img
+                src="assets/mubeen-final.jpg"
+                alt="Mubeen"
+            >
+        </div>
+
+        <div class="sub">
+            Some people become memories.<br>
+            Some become stories.<br>
+            And some just become the reason for a ridiculous website like this. 😂
+        </div>
+
+        <button class="action" onclick="nextAction('page-final')">
+            FINALIZE SESSION
+        </button>
+
+    </div>
+
+    <div class="scanlines"></div>
+</section>
+
+<section class="page" id="page-final">
+
+    <div class="center">
+
+        <div class="final-number">
+            29
+        </div>
+
+        <div class="final-name">
+            MUBEEN
+        </div>
+
+        <div
+            class="sub red"
+            style="font-size:18px;letter-spacing:4px">
+            29 SEPTEMBER
+        </div>
+
+        <div
+            class="sub"
+            style="font-size:17px;margin-top:25px">
+            HAPPY BIRTHDAY ❤️
+        </div>
+
+        <div class="sub">
+            SESSION COMPLETE // MEMORY SAVED
+        </div>
+
+        <button
+            class="action"
+            onclick="location.reload()">
+            REPLAY EXPERIENCE
+        </button>
+
+    </div>
+
+    <div id="confetti"></div>
+
+    <div class="scanlines"></div>
+</section>
+
+</div>
+
+<div class="modal" id="modal">
+
+    <div class="modal-box">
+
+        <div
+            class="modal-title"
+            id="modalTitle">
+            TERMINAL MESSAGE
+        </div>
+
+        <div
+            class="modal-text"
+            id="modalText">
+        </div>
+
+        <div class="modal-actions">
+            <button
+                class="close-btn"
+                onclick="closeModal()">
+                CLOSE
+            </button>
+        </div>
+
+    </div>
+
+</div>
+
+<div class="modal" id="passwordModal">
+
+    <div class="modal-box">
+
+        <div class="modal-title">
+            UNKNOWN // PASSWORD REQUIRED
+        </div>
+
+        <div class="small-terminal">
+
+            <div>> restricted object detected</div>
+            <div>> identity verification required</div>
+            <div class="term-red">> ENTER PASSWORD</div>
+
+        </div>
+
+        <input
+            id="passwordInput"
+            class="modal-input"
+            type="password"
+            placeholder="ENTER PASSWORD"
+            autocomplete="off"
+        >
+
+        <div class="modal-actions">
+
+            <button
+                class="action"
+                onclick="checkPassword()">
+                VERIFY
+            </button>
+
+            <button
+                class="close-btn"
+                onclick="closePassword()">
+                CANCEL
+            </button>
+
+        </div>
+
+        <div
+            id="passwordError"
+            class="red mono"
+            style="display:none;margin-top:15px;">
+            ACCESS DENIED
+        </div>
+
+    </div>
+
+</div>
+
+<div class="modal" id="imageModal">
+
+    <div
+        class="modal-box"
+        style="padding:10px">
+
+        <img
+            id="modalImage"
+            style="width:100%;max-height:75vh;object-fit:contain">
+
+        <button
+            class="close-btn"
+            onclick="closeImage()"
+            style="margin-top:10px">
+            CLOSE
+        </button>
+
+    </div>
+
+</div>
+
+<script>
+const pages=document.querySelectorAll(".page");
+
+let navigationLocked=false;
+let navigationFrame=null;
+let memoryStarted=false;
+
+function goTo(id){
+
+    pages.forEach(p=>p.classList.remove("active"));
+
+    const page=document.getElementById(id);
+
+    if(page){
+        page.classList.add("active");
+    }
+
+    if(id==="page-memory"){
+        startMemoryRecovery();
+    }
+
+    if(id==="page-hack"){
+        startHack();
+    }
+
+    if(id==="page-final"){
+        makeConfetti();
+    }
+}
+
+function nextAction(id){
+
+    if(navigationLocked)return;
+
+    const lock=document.getElementById("nextLock");
+    const secondsEl=document.getElementById("lockSeconds");
+    const progressEl=document.getElementById("lockProgress");
+    const flash=document.getElementById("pageFlash");
+
+    navigationLocked=true;
+
+    if(navigationFrame){
+        cancelAnimationFrame(navigationFrame);
+    }
+
+    const duration=10000;
+    const startTime=performance.now();
+
+    secondsEl.textContent="10";
+    progressEl.style.width="0%";
+    lock.classList.add("show");
+
+    function updateLock(now){
+
+        const elapsed=now-startTime;
+        const remaining=Math.max(0,duration-elapsed);
+        const percentage=Math.min(100,(elapsed/duration)*100);
+
+        progressEl.style.width=percentage+"%";
+        secondsEl.textContent=Math.ceil(remaining/1000);
+
+        if(remaining<=0){
+
+            secondsEl.textContent="0";
+            progressEl.style.width="100%";
+
+            flash.classList.remove("flash");
+            void flash.offsetWidth;
+            flash.classList.add("flash");
+
+            setTimeout(()=>{
+
+                lock.classList.remove("show");
+
+                goTo(id);
+
+                navigationLocked=false;
+
+            },220);
+
+            return;
+        }
+
+        navigationFrame=requestAnimationFrame(updateLock);
+    }
+
+    navigationFrame=requestAnimationFrame(updateLock);
+}
+
+document.getElementById("startBtn").addEventListener("click",()=>{
+    goTo("page-boot");
+    startBoot();
+});
+
+let bootStarted=false;
+
+function startBoot(){
+
+    if(bootStarted)return;
+
+    bootStarted=true;
+
+    const lines=[
+        ">> locating subject...",
+        ">> reading birthday signature...",
+        ">> checking memory archive...",
+        ">> decrypting FILE_01...",
+        ">> fake security handshake...",
+        ">> analysis 31%...",
+        ">> analysis 57%...",
+        ">> analysis 84%...",
+        ">> analysis 100%...",
+        ">> birthday protocol ready."
+    ];
+
+    const container=document.getElementById("analysisLines");
+    const progress=document.getElementById("bootProgress");
+    const status=document.getElementById("bootStatus");
+    const btn=document.getElementById("bootNext");
+
+    let i=0;
+
+    const interval=setInterval(()=>{
+
+        if(i<lines.length){
+
+            const line=document.createElement("div");
+
+            line.textContent=lines[i];
+
+            line.className=
+                i===lines.length-1
+                ?"term-green"
+                :"";
+
+            container.appendChild(line);
+
+            const percent=Math.min(
+                100,
+                Math.round(((i+1)/lines.length)*100)
+            );
+
+            progress.style.width=percent+"%";
+
+            status.textContent=
+                percent<100
+                ?"ANALYSIS — WAIT A FEW SEC"
+                :"ANALYSIS COMPLETE";
+
+            i++;
+
+        }else{
+
+            clearInterval(interval);
+
+            btn.style.display="inline-block";
+        }
+
+    },520);
+}
+
+document.getElementById("bootNext").onclick=()=>{
+    nextAction("page-file");
+};
+
+function startMemoryRecovery(){
+
+    if(memoryStarted)return;
+
+    memoryStarted=true;
+
+    const line1=document.getElementById("memoryLine1");
+    const line2=document.getElementById("memoryLine2");
+    const line3=document.getElementById("memoryLine3");
+    const line4=document.getElementById("memoryLine4");
+    const line5=document.getElementById("memoryLine5");
+    const line6=document.getElementById("memoryLine6");
+    const line7=document.getElementById("memoryLine7");
+    const success=document.getElementById("memorySuccess");
+    const terminal=document.getElementById("memoryTerminalContent");
+    const image=document.getElementById("recoveredImage");
+    const buttons=document.getElementById("memoryButtons");
+
+    line1.textContent="";
+    line2.textContent="";
+    line3.textContent="";
+    line4.textContent="";
+    line5.textContent="";
+    line6.textContent="";
+    line7.textContent="";
+    success.style.opacity="0";
+    image.classList.remove("reveal");
+    buttons.classList.remove("ready");
+
+    const sequence=[
+        [line1,"> scanning emotional archive...",700],
+        [line2,"> image signal unstable",1500],
+        [line3,"> restoring corrupted frame...",2300],
+        [line4,"> ███ SIGNAL BREAK ███",3100],
+        [line5,"> reconnecting...",3900],
+        [line6,"> ███ SIGNAL BREAK ███",4700],
+        [line7,"> signal integrity restored...",5500]
+    ];
+
+    sequence.forEach(([element,text,time])=>{
+
+        setTimeout(()=>{
+
+            element.textContent=text;
+
+        },time);
+
+    });
+
+    setTimeout(()=>{
+
+        success.style.opacity="1";
+
+    },6200);
+
+    setTimeout(()=>{
+
+        terminal.classList.add("fade");
+
+    },6900);
+
+    setTimeout(()=>{
+
+        image.classList.add("reveal");
+
+    },7300);
+
+    setTimeout(()=>{
+
+        buttons.classList.add("ready");
+
+    },8300);
+}
+
+function openImage(src){
+
+    document.getElementById("modalImage").src=src;
+
+    document
+        .getElementById("imageModal")
+        .classList.add("show");
+}
+
+function closeImage(){
+
+    document
+        .getElementById("imageModal")
+        .classList.remove("show");
+}
+
+function showMessage(title,text){
+
+    document.getElementById("modalTitle").textContent=title;
+
+    document.getElementById("modalText").textContent=text;
+
+    document
+        .getElementById("modal")
+        .classList.add("show");
+}
+
+function closeModal(){
+
+    document
+        .getElementById("modal")
+        .classList.remove("show");
+}
+
+let quizCount=0;
+
+function verifyQuiz(el,type){
+
+    if(el.classList.contains("approved"))return;
+
+    el.style.color="#00ff66";
+
+    el.innerHTML+=
+        "<br><span style='font-size:11px'> > terminal scanning...<br> > verifying...<br> > APPROVED</span>";
+
+    el.classList.add("approved");
+
+    quizCount++;
+
+    if(quizCount>=3){
+
+        document
+            .getElementById("quizNext")
+            .classList.add("ready");
+    }
+}
+
+function openPassword(){
+
+    document.getElementById("passwordInput").value="";
+
+    document.getElementById("passwordError").style.display="none";
+
+    document
+        .getElementById("passwordModal")
+        .classList.add("show");
+
+    setTimeout(()=>{
+        document
+            .getElementById("passwordInput")
+            .focus();
+    },200);
+}
+
+function closePassword(){
+
+    document
+        .getElementById("passwordModal")
+        .classList.remove("show");
+}
+
+function checkPassword(){
+
+    const value=
+        document
+            .getElementById("passwordInput")
+            .value
+            .trim()
+            .toLowerCase();
+
+    if(value==="bichuismy"){
+
+        closePassword();
+
+        setTimeout(()=>{
+
+            showMessage(
+                "UNKNOWN // ACCESS GRANTED",
+                "Mubeen,\n\nthis is Bichu x boy.\n\nWatching you 👀\n\nJust for prank okay — not real 😂\n\nNo real device, files, contacts or private data were accessed."
+            );
+
+        },250);
+
+    }else{
+
+        document
+            .getElementById("passwordError")
+            .style.display="block";
+    }
+}
+
+document
+    .getElementById("passwordInput")
+    .addEventListener("keydown",e=>{
+
+        if(e.key==="Enter"){
+            checkPassword();
+        }
+
+    });
+
+let gameTimer;
+let gameSeconds=29;
+let gameScore=0;
+let gameRunning=false;
+
+function startGame(){
+
+    gameRunning=true;
+    gameSeconds=29;
+    gameScore=0;
+
+    document
+        .getElementById("gameStartBox")
+        .style.display="none";
+
+    document
+        .getElementById("gameTime")
+        .textContent=gameSeconds;
+
+    document
+        .getElementById("gameScore")
+        .textContent=gameScore;
+
+    spawnTarget();
+
+    clearInterval(gameTimer);
+
+    gameTimer=setInterval(()=>{
+
+        gameSeconds--;
+
+        document
+            .getElementById("gameTime")
+            .textContent=gameSeconds;
+
+        if(gameSeconds<=0){
+            endGame();
+        }
+
+    },1000);
+}
+
+function spawnTarget(){
+
+    if(!gameRunning)return;
+
+    const zone=
+        document.getElementById("gameZone");
+
+    const old=
+        document.querySelector(".target");
+
+    if(old)old.remove();
+
+    const t=
+        document.createElement("div");
+
+    t.className="target";
+
+    const maxX=
+        Math.max(20,window.innerWidth-100);
+
+    const maxY=
+        Math.max(100,window.innerHeight-120);
+
+    t.style.left=
+        Math.random()*maxX+"px";
+
+    t.style.top=
+        (80+Math.random()*(maxY-80))+"px";
+
+    t.style.display="block";
+
+    t.onclick=()=>{
+
+        gameScore++;
+
+        document
+            .getElementById("gameScore")
+            .textContent=gameScore;
+
+        t.remove();
+
+        if(gameScore>=8){
+
+            endGame(true);
+
+        }else{
+
+            spawnTarget();
+        }
+
+    };
+
+    zone.appendChild(t);
+}
+
+function endGame(success=false){
+
+    gameRunning=false;
+
+    clearInterval(gameTimer);
+
+    const target=
+        document.querySelector(".target");
+
+    if(target)target.remove();
+
+    document
+        .getElementById("gameStartBox")
+        .style.display="block";
+
+    document
+        .getElementById("gameStartBox")
+        .innerHTML=`
+
+        <div class="section-title">
+            ${success?"ACCESS":"TIME"}
+            <span class="red">
+                ${success?"GRANTED":"EXPIRED"}
+            </span>
+        </div>
+
+        <div class="sub">
+            ${success?"GIFT PACKAGE FOUND":"SYSTEM FORCED OPEN"}
+        </div>
+
+        <button
+            class="action"
+            onclick="nextAction('page-hack')">
+            OPEN GIFT PACKAGE →
+        </button>
+
+    `;
+}
+
+let hackStarted=false;
+
+function createMatrix(){
+
+    const matrix=
+        document.getElementById("matrix");
+
+    matrix.innerHTML="";
+
+    const count=
+        Math.min(
+            55,
+            Math.max(
+                28,
+                Math.floor(window.innerWidth/15)
+            )
+        );
+
+    const chars=
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890123456789@#$%&01";
+
+    for(let i=0;i<count;i++){
+
+        const col=
+            document.createElement("div");
+
+        col.className="matrix-column";
+
+        let text="";
+
+        const length=
+            12+Math.floor(Math.random()*25);
+
+        for(let j=0;j<length;j++){
+
+            text+=
+                chars[
+                    Math.floor(
+                        Math.random()*chars.length
+                    )
+                ]+"\n";
+        }
+
+        col.textContent=text;
+
+        col.style.left=
+            (i*100/count)+"%";
+
+        col.style.animationDuration=
+            (2.5+Math.random()*5)+"s";
+
+        col.style.animationDelay=
+            (-Math.random()*5)+"s";
+
+        col.style.opacity=
+            (.25+Math.random()*.75).toFixed(2);
+
+        matrix.appendChild(col);
+    }
+}
+
+function startHack(){
+
+    createMatrix();
+
+    const terminal=
+        document.getElementById("hackTerminal");
+
+    const prank=
+        document.getElementById("prankCommand");
+
+    terminal.style.display="block";
+
+    prank.classList.remove("show");
+
+    if(hackStarted)return;
+
+    hackStarted=true;
+
+    const scans=[
+        ["scan1",1200],
+        ["scan2",2100],
+        ["scan3",3000],
+        ["scan4",3900]
+    ];
+
+    scans.forEach(([id,time])=>{
+
+        setTimeout(()=>{
+
+            document
+                .getElementById(id)
+                .textContent="SCANNING";
+
+            document
+                .getElementById(id)
+                .style.color="#00ff66";
+
+        },time);
+
+        setTimeout(()=>{
+
+            document
+                .getElementById(id)
+                .textContent="CHECKING";
+
+        },time+650);
+
+        setTimeout(()=>{
+
+            document
+                .getElementById(id)
+                .textContent="SIMULATED";
+
+            document
+                .getElementById(id)
+                .style.color="#777";
+
+        },time+1300);
+
+    });
+
+    const progress=
+        document.getElementById("hackProgress");
+
+    let percent=0;
+
+    const p=setInterval(()=>{
+
+        percent+=2;
+
+        progress.style.width=
+            percent+"%";
+
+        if(percent>=100){
+
+            clearInterval(p);
+
+            document
+                .getElementById("hackStatus")
+                .textContent=
+                "FINAL SECURITY CHECK...";
+
+            setTimeout(()=>{
+
+                document
+                    .getElementById("compromised")
+                    .style.display="block";
+
+                document
+                    .getElementById("hackStatus")
+                    .style.display="none";
+
+                setTimeout(()=>{
+
+                    terminal.style.display="none";
+
+                    prank.classList.add("show");
+
+                },2300);
+
+            },1000);
+        }
+
+    },120);
+}
+
+document
+    .getElementById("prankButton")
+    .onclick=()=>{
+
+        document.body.classList.add("shake");
+
+        setTimeout(()=>{
+            document.body.classList.remove("shake");
+        },450);
+
+        document
+            .getElementById("againPrank")
+            .style.display="block";
+
+        document
+            .getElementById("afterPrank")
+            .style.display="inline-block";
+
+        document
+            .getElementById("prankButton")
+            .textContent=
+            "YOU GOT PRANKED 😂";
+    };
+
+let candleCount=0;
+
+function blowCandle(el){
+
+    if(el.classList.contains("off"))return;
+
+    el.classList.add("off");
+
+    candleCount++;
+
+    const remaining=
+        3-candleCount;
+
+    if(remaining>0){
+
+        document
+            .getElementById("wishStatus")
+            .textContent=
+            remaining+" CANDLES ACTIVE";
+
+    }else{
+
+        document
+            .getElementById("wishStatus")
+            .innerHTML=
+            "<span class='red'>WISH DETECTED — 3... 2... 1... ❤️</span>";
+
+        setTimeout(()=>{
+
+            showMessage(
+                "WISH DETECTED",
+                "Mubeen,\nmake a wish.\n\n29 September is officially unlocked. ❤️"
+            );
+
+        },500);
+    }
+}
+
+const audio=
+    document.getElementById("audio");
+
+const seek=
+    document.getElementById("seek");
+
+function toggleMusic(){
+
+    if(audio.paused){
+
+        audio.play();
+
+        document
+            .getElementById("playBtn")
+            .textContent="PAUSE";
+
+    }else{
+
+        audio.pause();
+
+        document
+            .getElementById("playBtn")
+            .textContent="PLAY";
+    }
+}
+
+function muteMusic(){
+
+    audio.muted=!audio.muted;
+
+    document
+        .getElementById("muteBtn")
+        .textContent=
+        audio.muted
+        ?"UNMUTE"
+        :"MUTE";
+}
+
+audio.addEventListener("timeupdate",()=>{
+
+    if(audio.duration){
+
+        seek.value=
+            (audio.currentTime/audio.duration)*100;
+
+        document
+            .getElementById("currentTime")
+            .textContent=
+            formatTime(audio.currentTime);
+
+        document
+            .getElementById("remainingTime")
+            .textContent=
+            "-"+formatTime(
+                audio.duration-audio.currentTime
+            );
+    }
+});
+
+seek.addEventListener("input",()=>{
+
+    if(audio.duration){
+
+        audio.currentTime=
+            (seek.value/100)*audio.duration;
+    }
+});
+
+audio.addEventListener("ended",()=>{
+
+    document
+        .getElementById("playBtn")
+        .textContent="PLAY";
+});
+
+function formatTime(sec){
+
+    if(!isFinite(sec)){
+        return"0:00";
+    }
+
+    const m=
+        Math.floor(sec/60);
+
+    const s=
+        Math.floor(sec%60)
+        .toString()
+        .padStart(2,"0");
+
+    return m+":"+s;
+}
+
+function makeConfetti(){
+
+    const holder=
+        document.getElementById("confetti");
+
+    holder.innerHTML="";
+
+    for(let i=0;i<80;i++){
+
+        const c=
+            document.createElement("div");
+
+        c.className="confetti";
+
+        c.style.left=
+            Math.random()*100+"%";
+
+        c.style.animationDelay=
+            Math.random()*2+"s";
+
+        c.style.transform=
+            `rotate(${Math.random()*360}deg)`;
+
+        holder.appendChild(c);
+    }
+}
+
+window.addEventListener("resize",()=>{
+
+    if(
+        document
+            .getElementById("page-hack")
+            .classList
+            .contains("active")
+    ){
+
+        createMatrix();
+    }
+});
+
+document.addEventListener("keydown",e=>{
+
+    if(e.key==="Escape"){
+
+        closeModal();
+        closePassword();
+        closeImage();
+    }
+
+});
+</script>
+
+</body>
+</html>
+
+
+
+
